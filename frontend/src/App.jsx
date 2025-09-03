@@ -2,11 +2,11 @@ import React, { useState, useEffect } from "react";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import './App.css';
-// console.log("VITE_API_URL:", import.meta.env.VITE_API_URL);
+
+console.log("VITE_API_URL:", import.meta.env.VITE_API_URL);
 
 // API Base URL
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
 
 // API Helper Functions
 const apiCall = async (endpoint, options = {}) => {
@@ -70,24 +70,31 @@ const LoginForm = ({ onLogin, onSwitchToRegister }) => {
     setError('');
 
     try {
-      const response = await apiCall('/auth/login', {
-        method: 'POST',
-        body: formData,
-      });
-
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      onLogin(response.user);
+      const response = await axios.post(`${API_BASE}/auth/login`, formData);
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      onLogin(response.data.user);
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.error || err.message || 'Login failed');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleLogin = async () => {
-    // In a real implementation, you'd use Google's JavaScript SDK
-    alert('Google login integration requires Google SDK setup. Please use email login.');
+  const handleGoogleLogin = async (credentialResponse) => {
+    try {
+      setLoading(true);
+      const response = await axios.post(`${API_BASE}/auth/google`, {
+        token: credentialResponse.credential
+      });
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      onLogin(response.data.user);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Google login failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -130,15 +137,15 @@ const LoginForm = ({ onLogin, onSwitchToRegister }) => {
           <span>or</span>
         </div>
 
-        <button onClick={handleGoogleLogin} className="btn-google">
-          <svg width="20" height="20" viewBox="0 0 24 24">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-          </svg>
-          Continue with Google
-        </button>
+        <div style={{ marginBottom: '20px' }}>
+          <GoogleLogin
+            onSuccess={handleGoogleLogin}
+            onError={() => setError('Google login failed')}
+            theme="outline"
+            size="large"
+            width="100%"
+          />
+        </div>
 
         <p className="auth-switch">
           Don't have an account?{' '}
@@ -164,15 +171,11 @@ const RegisterForm = ({ onSwitchToLogin, onRegistrationSuccess }) => {
     setSuccess('');
 
     try {
-      const response = await apiCall('/auth/register', {
-        method: 'POST',
-        body: formData,
-      });
-
-      setSuccess(response.message);
+      const response = await axios.post(`${API_BASE}/auth/register`, formData);
+      setSuccess(response.data.message || 'Registration successful! Please verify your email.');
       onRegistrationSuccess(formData.email);
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.error || err.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
@@ -250,16 +253,15 @@ const OTPVerification = ({ email, onVerificationSuccess, onBackToLogin }) => {
     setError('');
 
     try {
-      const response = await apiCall('/auth/verify-otp', {
-        method: 'POST',
-        body: { email, otp },
+      const response = await axios.post(`${API_BASE}/auth/verify-otp`, {
+        email,
+        otp
       });
-
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      onVerificationSuccess(response.user);
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      onVerificationSuccess(response.data.user);
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.error || err.message || 'OTP verification failed');
     } finally {
       setLoading(false);
     }
@@ -270,13 +272,10 @@ const OTPVerification = ({ email, onVerificationSuccess, onBackToLogin }) => {
     setError('');
 
     try {
-      await apiCall('/auth/resend-otp', {
-        method: 'POST',
-        body: { email },
-      });
+      await axios.post(`${API_BASE}/auth/resend-otp`, { email });
       alert('OTP sent successfully!');
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.error || err.message || 'Failed to resend OTP');
     } finally {
       setResendLoading(false);
     }
@@ -336,12 +335,12 @@ const Dashboard = ({ user, onLogout }) => {
 
   const fetchNotes = async () => {
     try {
-      const response = await apiCall('/notes', {
+      const response = await axios.get(`${API_BASE}/notes`, {
         headers: getAuthHeaders(),
       });
-      setNotes(response.notes);
+      setNotes(response.data.notes || []);
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.error || err.message || 'Failed to fetch notes');
     } finally {
       setLoading(false);
     }
@@ -353,17 +352,15 @@ const Dashboard = ({ user, onLogout }) => {
     setError('');
 
     try {
-      const response = await apiCall('/notes', {
-        method: 'POST',
+      const response = await axios.post(`${API_BASE}/notes`, newNote, {
         headers: getAuthHeaders(),
-        body: newNote,
       });
 
-      setNotes([response.note, ...notes]);
+      setNotes([response.data.note, ...notes]);
       setNewNote({ title: '', content: '' });
       setShowCreateModal(false);
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.error || err.message || 'Failed to create note');
     } finally {
       setCreateLoading(false);
     }
@@ -373,14 +370,13 @@ const Dashboard = ({ user, onLogout }) => {
     if (!window.confirm('Are you sure you want to delete this note?')) return;
 
     try {
-      await apiCall(`/notes/${noteId}`, {
-        method: 'DELETE',
+      await axios.delete(`${API_BASE}/notes/${noteId}`, {
         headers: getAuthHeaders(),
       });
 
-      setNotes(notes.filter(note => note.id !== noteId));
+      setNotes(notes.filter(note => note.id !== noteId && note._id !== noteId));
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.error || err.message || 'Failed to delete note');
     }
   };
 
@@ -406,7 +402,7 @@ const Dashboard = ({ user, onLogout }) => {
         <div className="header-content">
           <div className="header-left">
             <h1>My Notes</h1>
-            <p>Welcome back, {user.name}!</p>
+            <p>Welcome back, {user.name || user.email}!</p>
           </div>
           <div className="header-right">
             <button onClick={() => setShowCreateModal(true)} className="btn-primary">
@@ -420,7 +416,11 @@ const Dashboard = ({ user, onLogout }) => {
       </header>
 
       {/* Error Message */}
-      {error && <ErrorMessage message={error} onClose={() => setError('')} />}
+      {error && (
+        <div style={{ maxWidth: '1200px', margin: '20px auto', padding: '0 20px' }}>
+          <ErrorMessage message={error} onClose={() => setError('')} />
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="dashboard-main">
@@ -452,7 +452,7 @@ const Dashboard = ({ user, onLogout }) => {
                 </div>
                 <div className="note-footer">
                   <small>
-                    {new Date(note.createdAt).toLocaleDateString()}
+                    {new Date(note.createdAt || note.updatedAt || Date.now()).toLocaleDateString()}
                   </small>
                 </div>
               </div>
@@ -519,24 +519,28 @@ const Dashboard = ({ user, onLogout }) => {
 };
 
 function App() {
-  const [currentView, setCurrentView] = useState("login"); // login | register | otp | dashboard
+  const [currentView, setCurrentView] = useState("login");
   const [user, setUser] = useState(null);
   const [otpEmail, setOtpEmail] = useState("");
 
   // Auto-login if user already in localStorage
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-      setCurrentView("dashboard");
+    const storedToken = localStorage.getItem("token");
+    if (storedUser && storedToken) {
+      try {
+        setUser(JSON.parse(storedUser));
+        setCurrentView("dashboard");
+      } catch (err) {
+        // If stored data is corrupted, clear it
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+      }
     }
   }, []);
 
-  // ---------- HANDLERS ----------
-  const handleLogin = (userData, token) => {
+  const handleLogin = (userData) => {
     setUser(userData);
-    localStorage.setItem("user", JSON.stringify(userData));
-    if (token) localStorage.setItem("token", token);
     setCurrentView("dashboard");
   };
 
@@ -545,10 +549,8 @@ function App() {
     setCurrentView("otp");
   };
 
-  const handleVerificationSuccess = (userData, token) => {
+  const handleVerificationSuccess = (userData) => {
     setUser(userData);
-    localStorage.setItem("user", JSON.stringify(userData));
-    if (token) localStorage.setItem("token", token);
     setCurrentView("dashboard");
   };
 
@@ -559,152 +561,48 @@ function App() {
     setCurrentView("login");
   };
 
-  // ---------- RENDER ----------
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
   return (
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-      <div style={{ padding: "20px", fontFamily: "Arial" }}>
-        {/* ---------- LOGIN VIEW ---------- */}
-        {currentView === "login" && (
-          <div>
-            <h2>Login</h2>
-
-            {/* Email/Password Login */}
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const email = e.target.email.value;
-                const password = e.target.password.value;
-
-                try {
-                  const res = await axios.post(
-                    `${import.meta.env.VITE_API_URL}/auth/login`,
-                    { email, password }
-                  );
-                  handleLogin(res.data.user, res.data.token);
-                } catch (err) {
-                  alert("Login failed");
-                }
-              }}
-            >
-              <input type="email" name="email" placeholder="Email" required />
-              <br />
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                required
-              />
-              <br />
-              <button type="submit">Login</button>
-            </form>
-
-            <hr />
-
-            {/* Google Login */}
-            <GoogleLogin
-              onSuccess={async (credentialResponse) => {
-                try {
-                  const res = await axios.post(
-                    `${import.meta.env.VITE_API_URL}/auth/google`,
-                    { token: credentialResponse.credential }
-                  );
-                  handleLogin(res.data.user, res.data.token);
-                } catch (err) {
-                  console.error(err);
-                  alert("Google login failed");
-                }
-              }}
-              onError={() => {
-                alert("Google login failed");
-              }}
+    <div className="app">
+      {googleClientId ? (
+        <GoogleOAuthProvider clientId={googleClientId}>
+          {currentView === "login" && (
+            <LoginForm
+              onLogin={handleLogin}
+              onSwitchToRegister={() => setCurrentView("register")}
             />
+          )}
 
-            <p>
-              Dont have an account?{" "}
-              <button onClick={() => setCurrentView("register")}>
-                Register
-              </button>
-            </p>
+          {currentView === "register" && (
+            <RegisterForm
+              onSwitchToLogin={() => setCurrentView("login")}
+              onRegistrationSuccess={handleRegistrationSuccess}
+            />
+          )}
+
+          {currentView === "otp" && (
+            <OTPVerification
+              email={otpEmail}
+              onVerificationSuccess={handleVerificationSuccess}
+              onBackToLogin={() => setCurrentView("login")}
+            />
+          )}
+
+          {currentView === "dashboard" && user && (
+            <Dashboard user={user} onLogout={handleLogout} />
+          )}
+        </GoogleOAuthProvider>
+      ) : (
+        <div className="auth-container">
+          <div className="auth-card">
+            <h2>Configuration Error</h2>
+            <p>Google Client ID is missing. Please check your .env file.</p>
+            <p>Add VITE_GOOGLE_CLIENT_ID to your frontend/.env file</p>
           </div>
-        )}
-
-        {/* ---------- REGISTER VIEW ---------- */}
-        {currentView === "register" && (
-          <div>
-            <h2>Register</h2>
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const email = e.target.email.value;
-                const password = e.target.password.value;
-
-                try {
-                  await axios.post(
-                    `${import.meta.env.VITE_API_URL}/auth/register`,
-                    { email, password }
-                  );
-                  handleRegistrationSuccess(email);
-                } catch (err) {
-                  alert("Registration failed");
-                }
-              }}
-            >
-              <input type="email" name="email" placeholder="Email" required />
-              <br />
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                required
-              />
-              <br />
-              <button type="submit">Register</button>
-            </form>
-            <p>
-              Already have an account?{" "}
-              <button onClick={() => setCurrentView("login")}>Login</button>
-            </p>
-          </div>
-        )}
-
-        {/* ---------- OTP VERIFICATION VIEW ---------- */}
-        {currentView === "otp" && (
-          <div>
-            <h2>Verify OTP</h2>
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const otp = e.target.otp.value;
-
-                try {
-                  const res = await axios.post(
-                    `${import.meta.env.VITE_API_URL}/auth/verify-otp`,
-                    { email: otpEmail, otp }
-                  );
-                  handleVerificationSuccess(res.data.user, res.data.token);
-                } catch (err) {
-                  alert("OTP verification failed");
-                }
-              }}
-            >
-              <input type="text" name="otp" placeholder="Enter OTP" required />
-              <br />
-              <button type="submit">Verify</button>
-            </form>
-            <button onClick={() => setCurrentView("login")}>Back</button>
-          </div>
-        )}
-
-        {/* ---------- DASHBOARD VIEW ---------- */}
-        {currentView === "dashboard" && user && (
-          <div>
-            <h2>Welcome, {user.email || user.name}</h2>
-            <p>You are logged in ✅</p>
-            <button onClick={handleLogout}>Logout</button>
-          </div>
-        )}
-      </div>
-    </GoogleOAuthProvider>
+        </div>
+      )}
+    </div>
   );
 }
 
