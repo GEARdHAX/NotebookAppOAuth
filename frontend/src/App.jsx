@@ -63,6 +63,8 @@ const LoginForm = ({ onLogin, onSwitchToRegister }) => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -117,16 +119,27 @@ const LoginForm = ({ onLogin, onSwitchToRegister }) => {
             />
           </div>
 
-          <div className="form-group">
-            <label>Password</label>
-            <input
-              type="password"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              required
-              placeholder="Enter your password"
-            />
-          </div>
+<div className="form-group password-group">
+  <label>Password</label>
+  <div className="password-wrapper">
+    <input
+      type={showPassword ? "text" : "password"}
+      value={formData.password}
+      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+      required
+      placeholder="Enter your password"
+    />
+    <button
+      type="button"
+      className="toggle-password"
+      onClick={() => setShowPassword(!showPassword)}
+    >
+      {showPassword ? "🙈" : "👁️"}
+    </button>
+  </div>
+</div>
+
+
 
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? <LoadingSpinner /> : 'Sign In'}
@@ -163,6 +176,8 @@ const RegisterForm = ({ onSwitchToLogin, onRegistrationSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -213,17 +228,27 @@ const RegisterForm = ({ onSwitchToLogin, onRegistrationSuccess }) => {
             />
           </div>
 
-          <div className="form-group">
-            <label>Password</label>
-            <input
-              type="password"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              required
-              placeholder="Create a password (min 6 characters)"
-              minLength="6"
-            />
-          </div>
+      <div className="form-group password-group">
+  <label>Password</label>
+  <div className="password-wrapper">
+    <input
+      type={showPassword ? "text" : "password"}
+      value={formData.password}
+      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+      required
+      placeholder="Create a password (min 6 characters)"
+      minLength="6"
+    />
+    <button
+      type="button"
+      className="toggle-password"
+      onClick={() => setShowPassword(!showPassword)}
+    >
+      {showPassword ? "🙈" : "👁️"}
+    </button>
+  </div>
+</div>
+
 
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? <LoadingSpinner /> : 'Sign Up'}
