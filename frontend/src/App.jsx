@@ -85,7 +85,7 @@ const LoginForm = ({ onLogin, onSwitchToRegister }) => {
     try {
       setLoading(true);
       const response = await axios.post(`${API_BASE}/auth/google`, {
-        token: credentialResponse.credential
+        tokenId: credentialResponse.credential
       });
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
