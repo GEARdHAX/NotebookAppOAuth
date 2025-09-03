@@ -303,39 +303,7 @@ note-taking-app/
 │   ├── package.json        # Frontend dependencies
 │   └── .gitignore
 └── README.md               # This file
-```
-
-## 🔄 Git Workflow
-
-### Feature Commits
-```bash
-# Initial setup
-git commit -m "feat: initial project setup with MongoDB"
-
-# Authentication
-git commit -m "feat: add user registration with email verification"
-git commit -m "feat: add JWT-based login system"
-git commit -m "feat: integrate Google OAuth authentication"
-
-# Notes functionality
-git commit -m "feat: add note creation and retrieval"
-git commit -m "feat: add note deletion functionality"
-
-# UI/UX
-git commit -m "feat: add responsive design and mobile support"
-git commit -m "feat: add error handling and user feedback"
-
-# Deployment
-git commit -m "feat: add production deployment configuration"
-```
-
-## 📞 Support
-
-For issues and questions:
-1. Check this README for common solutions
-2. Review error messages in browser console and server logs
-3. Verify all environment variables are correctly set
-4. Ensure all dependencies are installed
+```d
 
 ## 📄 License
 

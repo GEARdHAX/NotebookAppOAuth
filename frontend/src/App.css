@@ -36,8 +36,13 @@ body {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .dashboard-loading {
@@ -55,7 +60,8 @@ body {
 }
 
 /* Messages */
-.error-message, .success-message {
+.error-message,
+.success-message {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -78,7 +84,8 @@ body {
   border: 1px solid rgba(154, 230, 180, 0.5);
 }
 
-.error-message button, .success-message button {
+.error-message button,
+.success-message button {
   background: none;
   border: none;
   font-size: 18px;
@@ -116,7 +123,7 @@ body {
   font-weight: 700;
 }
 
-.auth-card > p {
+.auth-card>p {
   text-align: center;
   color: #64748b;
   margin-bottom: 32px;
@@ -135,7 +142,8 @@ body {
   font-size: 14px;
 }
 
-.form-group input, .form-group textarea {
+.form-group input,
+.form-group textarea {
   width: 100%;
   padding: 14px 16px;
   border: 1px solid #e2e8f0;
@@ -145,7 +153,8 @@ body {
   background: rgba(255, 255, 255, 0.8);
 }
 
-.form-group input:focus, .form-group textarea:focus {
+.form-group input:focus,
+.form-group textarea:focus {
   outline: none;
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
@@ -160,7 +169,9 @@ body {
 }
 
 /* Buttons */
-.btn-primary, .btn-secondary, .btn-google {
+.btn-primary,
+.btn-secondary,
+.btn-google {
   width: 100%;
   padding: 14px 24px;
   border: none;
@@ -607,6 +618,20 @@ body {
   }
 }
 
+/* Validation Error Styles */
+.form-group input.error,
+.form-group textarea.error {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.field-error {
+  display: block;
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-top: 4px;
+}
+
 /* Accessibility */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -626,6 +651,7 @@ textarea:focus-visible {
 
 /* Print styles */
 @media print {
+
   .dashboard-header,
   .btn-primary,
   .btn-secondary,
