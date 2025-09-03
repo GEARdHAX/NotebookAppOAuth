@@ -1,37 +1,43 @@
 # Note Taking Application
 
-A full-stack note-taking application built with React, Node.js, and MongoDB featuring user authentication, email verification, and Google OAuth integration.
+A full-stack **TypeScript-based** note-taking application built with React, Node.js/Express, and MongoDB featuring user authentication, email verification, and Google OAuth integration.
+
+---
 
 ## 🚀 Features
 
-- **User Authentication**: Email/password signup with OTP verification
-- **Google OAuth**: Quick signup/login with Google account
-- **JWT Security**: Secure API authentication
-- **Note Management**: Create, view, and delete notes
-- **Responsive Design**: Mobile-friendly interface
-- **Input Validation**: Comprehensive client and server-side validation
-- **Error Handling**: Clear error messages and feedback
+* **User Authentication**: Email/password signup with OTP verification
+* **Google OAuth**: Quick signup/login with Google account
+* **JWT Security**: Secure API authentication
+* **Note Management**: Create, view, and delete notes
+* **Responsive Design**: Mobile-friendly interface
+* **Input Validation**: Client + server-side with TypeScript type safety
+* **Error Handling**: Strongly typed error handling and clear messages
+
+---
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: React 18, JavaScript, CSS3
-- **Backend**: Node.js, Express.js
-- **Database**: MongoDB with Mongoose ODM
-- **Authentication**: JWT, Google OAuth 2.0
-- **Email**: Nodemailer for OTP verification
+* **Frontend**: React 18 + TypeScript, CSS3
+* **Backend**: Node.js, Express.js, TypeScript
+* **Database**: MongoDB with Mongoose ODM
+* **Authentication**: JWT, Google OAuth 2.0
+* **Email**: Nodemailer for OTP verification
+
+---
 
 ## 📋 Prerequisites
 
-Before running this application, make sure you have:
+* Node.js (v16 or higher)
+* MongoDB (local or MongoDB Atlas)
+* Gmail account (for sending OTP emails)
+* Google Cloud Console project (for OAuth Client ID)
 
-- Node.js (v16 or higher)
-- MongoDB (local installation or MongoDB Atlas)
-- Gmail account (for sending OTP emails)
-- Google Cloud Console project (for Google OAuth)
+---
 
 ## 🔧 Installation & Setup
 
-### 1. Clone the Repository
+### 1. Clone Repository
 
 ```bash
 git clone <repository-url>
@@ -41,270 +47,178 @@ cd note-taking-app
 ### 2. Backend Setup
 
 ```bash
-# Navigate to backend directory
 cd backend
-
-# Install dependencies
 npm install
-
-# Create environment file
-cp .env.example .env
 ```
 
-### 3. Configure Environment Variables
+Initialize TypeScript (if not already done):
 
-Edit the `.env` file with your configuration:
+```bash
+npx tsc --init
+```
+
+### 3. Environment Variables
+
+Create `.env` file inside `backend`:
 
 ```env
-# MongoDB Connection
 MONGODB_URI=mongodb://localhost:27017/noteapp
-# For MongoDB Atlas: mongodb+srv://username:password@cluster.mongodb.net/noteapp
-
-# JWT Secret (generate a secure random string)
 JWT_SECRET=your_super_secret_jwt_key_here
 
-# Gmail Configuration for OTP emails
 EMAIL_USER=your_email@gmail.com
 EMAIL_PASSWORD=your_gmail_app_password
 
-# Google OAuth Client ID
 GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
 
-# Server Port
 PORT=5000
 ```
 
-### 4. Gmail Setup for OTP
+### 4. Backend Scripts
 
-1. Enable 2-factor authentication on your Gmail account
-2. Generate an "App Password" for the application
-3. Use this app password in the `EMAIL_PASSWORD` field
+In `backend/package.json`:
 
-### 5. Google OAuth Setup
-
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select existing one
-3. Enable Google+ API
-4. Create OAuth 2.0 credentials
-5. Add your domain to authorized origins
-6. Copy the Client ID to your `.env` file
-
-### 6. MongoDB Setup
-
-#### Local MongoDB:
-```bash
-# Install MongoDB Community Edition
-# Start MongoDB service
-mongod --dbpath /path/to/your/data/directory
+```json
+"scripts": {
+  "build": "tsc",
+  "start": "node dist/server.js",
+  "dev": "ts-node-dev --respawn --transpile-only server.ts"
+}
 ```
 
-#### MongoDB Atlas (Cloud):
-1. Create account at [MongoDB Atlas](https://www.mongodb.com/atlas)
-2. Create a new cluster
-3. Get connection string and update `MONGODB_URI`
+* `server.ts` is your entry point (instead of `server.js`)
+* Compiled JS will be in `dist/`
 
-### 7. Start Backend Server
+Run backend:
 
 ```bash
-# Development mode with auto-restart
 npm run dev
-
-# Production mode
-npm start
 ```
 
-Backend will run on `http://localhost:5000`
+---
 
-### 8. Frontend Setup
+### 5. Frontend Setup
 
 ```bash
-# Navigate to frontend directory
 cd ../frontend
-
-# Install dependencies
 npm install
-
-# Create environment file (optional)
-echo "REACT_APP_API_URL=http://localhost:5000/api" > .env
-
-# Start development server
-npm start
 ```
 
-Frontend will run on `http://localhost:3000`
+Create `.env`:
 
-## 🗄️ Database Schema
+```env
+VITE_API_URL=http://localhost:5000/api
+VITE_GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
+```
 
-### Users Collection
-```javascript
-{
-  _id: ObjectId,
-  email: String (unique),
-  password: String (hashed),
-  name: String,
-  isVerified: Boolean,
-  googleId: String (optional),
-  otp: String (temporary),
-  otpExpiry: Date (temporary),
-  createdAt: Date
+Run frontend:
+
+```bash
+npm run dev
+```
+
+---
+
+## 🗄️ Database Schema (TypeScript Interfaces)
+
+### `User`
+
+```ts
+interface User {
+  _id: string;
+  email: string;
+  password: string;
+  name: string;
+  isVerified: boolean;
+  googleId?: string;
+  otp?: string;
+  otpExpiry?: Date;
+  createdAt: Date;
 }
 ```
 
-### Notes Collection
-```javascript
-{
-  _id: ObjectId,
-  title: String,
-  content: String,
-  userId: ObjectId (ref: User),
-  createdAt: Date,
-  updatedAt: Date
+### `Note`
+
+```ts
+interface Note {
+  _id: string;
+  title: string;
+  content: string;
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 ```
+
+---
 
 ## 🔌 API Endpoints
 
-### Authentication Routes
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `POST /api/auth/verify-otp` - Email verification
-- `POST /api/auth/google` - Google OAuth login
-- `POST /api/auth/resend-otp` - Resend OTP
+Authentication:
 
-### Protected Routes (require JWT token)
-- `GET /api/notes` - Get user's notes
-- `POST /api/notes` - Create new note
-- `DELETE /api/notes/:id` - Delete note
-- `GET /api/user/profile` - Get user profile
+* `POST /api/auth/register` - Register
+* `POST /api/auth/login` - Login
+* `POST /api/auth/verify-otp` - Verify OTP
+* `POST /api/auth/google` - Google login
+* `POST /api/auth/resend-otp` - Resend OTP
 
-### Health Check
-- `GET /api/health` - API status check
+Notes (JWT required):
+
+* `GET /api/notes`
+* `POST /api/notes`
+* `DELETE /api/notes/:id`
+
+---
 
 ## 🚀 Deployment
 
-### Backend Deployment (Railway/Render/Heroku)
+### Backend (Render/Railway/Heroku)
 
-1. **Environment Variables**: Set all required environment variables
-2. **Database**: Use MongoDB Atlas for production
-3. **Build Command**: `npm install`
-4. **Start Command**: `npm start`
+* `npm run build`
+* Deploy `dist/` output with `npm start`
+* Use MongoDB Atlas in production
 
-### Frontend Deployment (Netlify/Vercel)
+### Frontend (Netlify/Vercel)
 
-1. **Build Command**: `npm run build`
-2. **Publish Directory**: `build`
-3. **Environment Variables**: Set `REACT_APP_API_URL` to your backend URL
+* `npm run build`
+* Publish `dist/` folder (since Vite outputs `dist`)
+* Set `VITE_API_URL` to deployed backend URL
 
-### Example Deployment URLs
-- **Backend**: `https://noteapp-backend.railway.app`
-- **Frontend**: `https://noteapp-frontend.netlify.app`
-
-## 🧪 Testing
-
-### Backend Testing
-```bash
-cd backend
-npm test
-```
-
-### Frontend Testing
-```bash
-cd frontend
-npm test
-```
-
-### Manual Testing Checklist
-
-- [ ] User can register with email and password
-- [ ] OTP is sent and can be verified
-- [ ] User can login with verified credentials
-- [ ] Google OAuth login works
-- [ ] JWT authentication protects routes
-- [ ] User can create notes
-- [ ] User can view their notes
-- [ ] User can delete notes
-- [ ] Responsive design works on mobile
-- [ ] Error messages display correctly
-- [ ] Input validation works
-
-## 🔒 Security Features
-
-- **Password Hashing**: bcryptjs with salt rounds
-- **JWT Tokens**: Secure authentication with expiration
-- **Input Validation**: Server-side validation for all inputs
-- **CORS Protection**: Configured for specific origins
-- **Environment Variables**: Sensitive data stored securely
-- **OTP Expiration**: Time-limited verification codes
-
-## 📱 Mobile Responsiveness
-
-The application is fully responsive and works on:
-- Desktop (1200px+)
-- Tablet (768px - 1199px)
-- Mobile (320px - 767px)
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **MongoDB Connection Error**
-   - Ensure MongoDB is running
-   - Check connection string in `.env`
-   - Verify network access for Atlas
-
-2. **Email Not Sending**
-   - Check Gmail app password
-   - Verify 2FA is enabled
-   - Check EMAIL_USER and EMAIL_PASSWORD
-
-3. **Google OAuth Error**
-   - Verify Google Client ID
-   - Check authorized origins in Google Console
-   - Ensure Google+ API is enabled
-
-4. **JWT Token Issues**
-   - Check JWT_SECRET is set
-   - Verify token hasn't expired
-   - Clear browser storage and re-login
-
-### Development Tips
-
-```bash
-# Check backend logs
-npm run dev
-
-# Check frontend console
-# Open browser developer tools
-
-# Test API endpoints
-curl -X GET http://localhost:5000/api/health
-
-# Reset database (development only)
-# Drop collections in MongoDB
-```
+---
 
 ## 📦 Project Structure
 
 ```
 note-taking-app/
 ├── backend/
-│   ├── app.js              # Main server file
-│   ├── package.json        # Backend dependencies
-│   ├── .env.example        # Environment template
-│   └── .gitignore
-├── frontend/
-│   ├── public/
-│   │   └── index.html      # HTML template
 │   ├── src/
-│   │   ├── App.js          # Main React component
-│   │   ├── App.css         # Component styles
-│   │   ├── index.js        # React entry point
-│   │   └── index.css       # Global styles
-│   ├── package.json        # Frontend dependencies
-│   └── .gitignore
-└── README.md               # This file
-```d
+│   │   ├── server.ts
+│   │   ├── routes/
+│   │   ├── controllers/
+│   │   ├── models/
+│   │   └── utils/
+│   ├── tsconfig.json
+│   ├── package.json
+│   └── .env
+├── frontend/
+│   ├── src/
+│   │   ├── App.tsx
+│   │   ├── components/
+│   │   ├── pages/
+│   │   └── types/
+│   ├── vite.config.ts
+│   ├── package.json
+│   └── .env
+└── README.md
+```
 
-## 📄 License
+---
 
-MIT License - feel free to use this project for learning and development.
+## 🔒 Security
+
+* TypeScript strict mode enabled
+* Password hashing with bcryptjs
+* JWT authentication with expiration
+* OTP expiration logic
+* CORS configured
+
+---
