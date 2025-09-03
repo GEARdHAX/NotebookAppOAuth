@@ -1,0 +1,56 @@
+#Logs
+logs
+.log
+npm-debug.log
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+#Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+#Dependency directories
+node_modules
+
+#Env and local config
+.env
+.env.*.local
+*.local
+
+#Coverage and reports
+coverage
+.nyc_output
+lcov.info
+
+#Caches and tooling
+.cache
+.eslintcache
+.stylelintcache
+.parcel-cache
+.vite
+.cache-loader
+
+#Build output
+dist
+build
+lib-cov
+build/Release
+
+#Optional npm/yarn/pnpm caches
+.npm
+.yarn-integrity
+.pnpm-debug.log*
+
+#REPL history
+.node_repl_history
+
+#OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea
